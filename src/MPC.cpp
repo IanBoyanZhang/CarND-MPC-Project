@@ -127,7 +127,7 @@ class FG_eval {
     // g(x) model constraints
 
     // Initial constraints
-        fg[1 + x_start] = vars[x_start];
+    fg[1 + x_start] = vars[x_start];
     fg[1 + y_start] = vars[y_start];
     fg[1 + psi_start] = vars[psi_start];
     fg[1 + v_start] = vars[v_start];
@@ -169,13 +169,13 @@ class FG_eval {
       // v_[t+1] = v[t] + a[t] * dt
       // cte[t+1] = f(x[t]) - y[t] + v[t] * sin(epsi[t]) * dt
       // epsi[t+1] = psi[t] - psides[t] + v[t] * delta[t] / Lf * dt
-      fg[2 + x_start + i] = x1 - (x0 + v0 * CppAD::cos(psi0) * dt);
-      fg[2 + y_start + i] = y1 - (y0 + v0 * CppAD::sin(psi0) * dt);
-      fg[2 + psi_start + i] = psi1 - (psi0 + v0 * delta0 / Lf * dt);
-      fg[2 + v_start + i] = v1 - (v0 + a0 * dt);
-      fg[2 + cte_start + i] =
+      fg[1 + x_start + i + 1] = x1 - (x0 + v0 * CppAD::cos(psi0) * dt);
+      fg[1 + y_start + i + 1] = y1 - (y0 + v0 * CppAD::sin(psi0) * dt);
+      fg[1 + psi_start + i + 1] = psi1 - (psi0 + v0 * delta0 / Lf * dt);
+      fg[1 + v_start + i + 1] = v1 - (v0 + a0 * dt);
+      fg[1 + cte_start + i + 1] =
           cte1 - ((f0 - y0) + (v0 * CppAD::sin(epsi0) * dt));
-      fg[2 + epsi_start + i] =
+      fg[1 + epsi_start + i + 1] =
           epsi1 - ((psi0 - psides0) + v0 * delta0 / Lf * dt);
     }
 
@@ -321,5 +321,8 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   //
   // {...} is shorthand for creating a vector, so auto x1 = {1.0,2.0}
   // creates a 2 element double vector.
-  return {};
+  return {solution.x[x_start + 1],   solution.x[y_start + 1],
+          solution.x[psi_start + 1], solution.x[v_start + 1],
+          solution.x[cte_start + 1], solution.x[epsi_start + 1],
+          solution.x[delta_start],   solution.x[a_start]};
 }

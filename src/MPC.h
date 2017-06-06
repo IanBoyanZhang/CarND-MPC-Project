@@ -9,11 +9,11 @@
 #include <limits>
 #include "Eigen-3.3/Eigen/Core"
 #include "Eigen-3.3/Eigen/QR"
+//#include "tools.h"
 
 using CppAD::AD;
 using Eigen::VectorXd;
 using Eigen::MatrixXd;
-//#include "tools.h"
 
 using namespace std;
 
