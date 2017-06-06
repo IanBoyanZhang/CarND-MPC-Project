@@ -5,11 +5,9 @@
 // https://www.coin-or.org/CppAD/Doc/cppad_eigen.hpp.htm
 #include <vector>
 #include <cppad/cppad.hpp>
-// #include <cppad/example/cppad_eigen.hpp>
 #include <limits>
 #include "Eigen-3.3/Eigen/Core"
 #include "Eigen-3.3/Eigen/QR"
-//#include "tools.h"
 
 using CppAD::AD;
 using Eigen::VectorXd;
