@@ -32,6 +32,7 @@ string hasData(string s) {
   return "";
 }
 
+/*
 // Evaluate a polynomial.
 double polyeval(Eigen::VectorXd coeffs, double x) {
   double result = 0.0;
@@ -64,6 +65,7 @@ Eigen::VectorXd polyfit(Eigen::VectorXd xvals, Eigen::VectorXd yvals,
   auto result = Q.solve(yvals);
   return result;
 }
+*/
 
 int main() {
   uWS::Hub h;

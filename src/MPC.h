@@ -1,8 +1,19 @@
 #ifndef MPC_H
 #define MPC_H
 
+// Reference
+// https://www.coin-or.org/CppAD/Doc/cppad_eigen.hpp.htm
 #include <vector>
+#include <cppad/cppad.hpp>
+// #include <cppad/example/cppad_eigen.hpp>
+#include <limits>
 #include "Eigen-3.3/Eigen/Core"
+#include "Eigen-3.3/Eigen/QR"
+
+using CppAD::AD;
+using Eigen::VectorXd;
+using Eigen::MatrixXd;
+//#include "tools.h"
 
 using namespace std;
 
