@@ -2,12 +2,13 @@
 #include <cppad/cppad.hpp>
 #include <cppad/ipopt/solve.hpp>
 #include "Eigen-3.3/Eigen/Core"
+#include "tools.h"
 
 using CppAD::AD;
 
 // TODO: Set the timestep length and duration
-size_t N = 0;
-double dt = 0;
+size_t N = 25;
+double dt = 0.05;
 
 // This value assumes the model presented in the classroom is used.
 //
@@ -21,6 +22,26 @@ double dt = 0;
 // This is the length from front to CoG that has a similar radius.
 const double Lf = 2.67;
 
+double_t ref_cte = 0;
+double_t ref_epsi = 0;
+// Target speed
+double_t ref_v = 40;
+
+// The solver takes all the state variables and actuator
+// variables in a singular vector. Thus we should to establish
+// when one variable starts and another ends to make our lifes easier
+
+// All global variables?
+// unsigned integer
+size_t x_start = 0;
+size_t y_start = x_start + N;
+size_t psi_start = y_start + N;
+size_t v_start = psi_start + N;
+size_t cte_start = v_start + N;
+size_t epsi_start = cte_start + N;
+size_t delta_start = epsi_start + N;
+size_t a_start = delta_start + N - 1;
+
 class FG_eval {
  public:
   // Fitted polynomial coefficients
@@ -33,6 +54,20 @@ class FG_eval {
     // fg a vector of constraints, x is a vector of constraints.
     // NOTE: You'll probably go back and forth between this function and
     // the Solver function below.
+
+    // https://www.coin-or.org/CppAD/Doc/ipopt_solve.htm
+    // Setting up cost function
+    // First element of `fg` is cost
+    fg[0] = 0;
+
+    // The part of the cost based on the reference state
+    // Least square error in quadratic form?
+    for (auto i = 0; i < N; i+=1) {
+      fg[0] += CppAD::pow(vars[cte_start + 1] - ref_cte, 2);
+      fg[0] += CppAD::pow(vars[cte_start + 1] - ref_cte, 2);
+      fg[0] += CppAD::pow(vars[cte_start + 1] - ref_cte, 2);
+    }
+
   }
 };
 
