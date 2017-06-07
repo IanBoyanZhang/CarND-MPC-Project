@@ -134,31 +134,17 @@ VectorXd polyfit(VectorXd xvals, VectorXd yvals, int order) {
  * @param ptsx
  * @param ptsy
  * @param px
- * @return nav_in_car_x
+ * @return nav_in_car_x, nav_in_car_y
  */
-double_t map2car_x(const double_t psi, const double_t ptsx,
+vector<double_t> map2car(const double_t psi, const double_t ptsx,
                    const double_t ptsy, const double_t px, const double_t py) {
   double_t x = ptsx - px;
   double_t y = ptsy - py;
 
-  return x * cos(-psi) - y * sin(-psi);
-}
-
-/**
- *  Transform navigation points in navigation/map coordinates to
- *  car/vehicle
- * @param psi
- * @param ptsx
- * @param ptsy
- * @param py
- * @return nav_in_car_y
- */
-double_t map2car_y(const double_t psi, const double_t ptsx,
-                   const double_t ptsy, const double_t px, const double_t py) {
-  double_t x = ptsx - px;
-  double_t y = ptsy - py;
-
-  return x * sin(-psi) + y * cos(-psi);
+  vector<double_t> result;
+  result.push_back(x * cos(-psi) - y * sin(-psi));
+  result.push_back(x * sin(-psi) + y * cos(-psi));
+  return result;
 }
 
 /**
@@ -261,21 +247,20 @@ int main() {
           VectorXd ptsx_veh = VectorXd::Zero(ptsx.size());
           VectorXd ptsy_veh = VectorXd::Zero(ptsy.size());
 
-
-          double_t ptx = 0;
-          double_t pty = 0;
+          vector<double> ptxy;
           for (auto i = 0; i < ptsx.size() && i < ptsy.size(); i+=1) {
-            ptx = map2car_x(psi, ptsx[i], ptsy[i], px, py);
-            ptsx_veh(i) = ptx;
-            next_x_vals.push_back(ptx);
+            ptxy = map2car(psi, ptsx[i], ptsy[i], px, py);
 
-            pty = map2car_y(psi, ptsx[i], ptsy[i], px, py);
-            ptsy_veh(i) = pty;
-            next_y_vals.push_back(pty);
+            ptsx_veh(i) = ptxy[0];
+            next_x_vals.push_back(ptxy[0]);
+
+            ptsy_veh(i) = ptxy[1];
+            next_y_vals.push_back(ptxy[1]);
           }
 
           double_t x = 0;
           double_t y = 0;
+          double_t psi_veh = 0;
           VectorXd coeffs = polyfit(ptsx_veh, ptsy_veh, 2);
           double_t cte = get_cte(x, y, coeffs);
           double_t epsi = get_epsi(x, psi, coeffs);
@@ -289,10 +274,11 @@ int main() {
           // x, y, psi, cte, epsi in car coordinate
           // v in global coordinate
           VectorXd state = VectorXd::Zero(6);
-          state << x, y, psi, v, cte, epsi;
+          state << x, y, psi_veh, v, cte, epsi;
 
           // invoke solver
           //  vector<double> result = mpc.Solve(state, coeffs);
+//          auto result = mpc.Solve(state, coeffs);
           // steer_value = result[6];
           // throttle_value = result[7];
 
