@@ -31,9 +31,6 @@ using namespace std;
 // Length from fromt to CoG that has a similar radius
 const double_t Lf = 2.67;
 
-// 100ms
-double_t delay = 0.1;
-
 class MPC {
  public:
   MPC();

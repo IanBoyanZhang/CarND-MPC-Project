@@ -277,7 +277,7 @@ int main() {
            * To account for latency, predict the vehicle state 100ms into the future
            * before passing it to the solver. Then take the first actuator value
            */
-          progress_state(&x, &y, &psi, &v, &cte, &epsi, steer_value, throttle_value, delay);
+          progress_state(&x, &y, &psi, &v, &cte, &epsi, steer_value, throttle_value, 0.1);
 
           // Augmented state vector
           // x, y, psi, cte, epsi in car coordinate
@@ -290,8 +290,8 @@ int main() {
           steer_value = result[6];
           throttle_value = result[7];
 
-          std::cout << "steer: " << steer_value << std:endl;
-          std::cout << "throttle: " << throttle_value << std:endl;
+          std::cout << "steer: " << steer_value << std::endl;
+          std::cout << "throttle: " << throttle_value << std::endl;
           /**
            * Test only
            */
