@@ -137,9 +137,11 @@ VectorXd polyfit(VectorXd xvals, VectorXd yvals, int order) {
  * @return nav_in_car_x
  */
 double_t map2car_x(const double_t psi, const double_t ptsx,
-                   const double_t ptsy, const double_t px) {
-  double_t x = cos(psi) * ptsx - sin(psi) * ptsy + (ptsx - px);
-  return x;
+                   const double_t ptsy, const double_t px, const double_t py) {
+  double_t x = ptsx - px;
+  double_t y = ptsy - py;
+
+  return x * cos(-psi) - y * sin(-psi);
 }
 
 /**
@@ -152,9 +154,11 @@ double_t map2car_x(const double_t psi, const double_t ptsx,
  * @return nav_in_car_y
  */
 double_t map2car_y(const double_t psi, const double_t ptsx,
-                 const double_t ptsy, const double_t py) {
-  double_t y = sin(psi) * ptsx + cos(psi) * ptsy + (ptsy - py);
-  return y;
+                   const double_t ptsy, const double_t px, const double_t py) {
+  double_t x = ptsx - px;
+  double_t y = ptsy - py;
+
+  return x * sin(-psi) + y * cos(-psi);
 }
 
 /**
@@ -240,10 +244,10 @@ int main() {
           /**
            * Accounting actuators delay
            */
-          double steer_value = 0;
-          double throttle_value = 0;
+          double steer_value = j[1]["steering_angle"];
+          double throttle_value = j[1]["throttle"];
 
-//          Server usually provides 6 (or 5) navigation points
+//          Server usually provides 6 navigation points
 //          Can be used to fit desired path
 //          Fit coeffs from waypoints
           // TODO: Safecasting using size_t?
@@ -257,14 +261,16 @@ int main() {
           VectorXd ptsx_veh = VectorXd::Zero(ptsx.size());
           VectorXd ptsy_veh = VectorXd::Zero(ptsy.size());
 
+
           double_t ptx = 0;
           double_t pty = 0;
           for (auto i = 0; i < ptsx.size() && i < ptsy.size(); i+=1) {
-            ptx = map2car_x(psi, ptsx[i], ptsy[i], px);
-            ptsx_veh << ptx;
+            ptx = map2car_x(psi, ptsx[i], ptsy[i], px, py);
+            ptsx_veh(i) = ptx;
             next_x_vals.push_back(ptx);
-            pty = map2car_y(psi, ptsx[i], ptsy[i], py);
-            ptsy_veh << pty;
+
+            pty = map2car_y(psi, ptsx[i], ptsy[i], px, py);
+            ptsy_veh(i) = pty;
             next_y_vals.push_back(pty);
           }
 
@@ -286,12 +292,12 @@ int main() {
           state << x, y, psi, v, cte, epsi;
 
           // invoke solver
-          vector<double> result = mpc.Solve(state, coeffs);
-          steer_value = result[6];
-          throttle_value = result[7];
+          //  vector<double> result = mpc.Solve(state, coeffs);
+          // steer_value = result[6];
+          // throttle_value = result[7];
 
-          std::cout << "steer: " << steer_value << std::endl;
-          std::cout << "throttle: " << throttle_value << std::endl;
+          // std::cout << "steer: " << steer_value << std::endl;
+          // std::cout << "throttle: " << throttle_value << std::endl;
           /**
            * Test only
            */
