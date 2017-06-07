@@ -42,49 +42,9 @@ size_t epsi_start = cte_start + N;
 size_t delta_start = epsi_start + N;
 size_t a_start = delta_start + N - 1;
 
-
-/**
- * Evaluate a polynomial
- * @param coeffs
- * @param x
- * @return
- */
-double_t polyeval(VectorXd coeffs, double_t x) {
-  double_t result = 0.0;
-  for (auto i = 0; i < coeffs.size(); i++) {
-    result += coeffs[i] * pow(x, i);
-  }
-  return result;
-}
-
-/**
- * Fit a polynomial
- * Adapted from
- * https://github.com/JuliaMath/Polynomials.jl/blob/master/src/Polynomials.jl#L676-L716
- * @param xvals
- * @param yvals
- * @param order
- * @return
- */
-VectorXd polyfit(VectorXd xvals, VectorXd yvals, int order) {
-  assert(xvals.size() == yvals.size());
-  assert(order >= 1 && order <= xvals.size() - 1);
-  MatrixXd A = MatrixXd::Zero(xvals.size(), order + 1);
-
-  // Construct a Vandermonde matrix
-  A.col(0) = VectorXd::Ones(xvals.size());
-  for (auto i = 0; i < order; i+=1) {
-    A.col(i + 1)  = A.col(i).array() * xvals.array();
-  }
-
-  auto Q = A.householderQr();
-  return Q.solve(yvals);
-}
-
-
 class FG_eval {
  public:
-  // Fitted polynomial coefficients
+  // Fitted plynomial coefficients
   Eigen::VectorXd coeffs;
   FG_eval(Eigen::VectorXd coeffs) { this->coeffs = coeffs; }
 
@@ -190,7 +150,7 @@ MPC::~MPC() {}
 
 vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   bool ok = true;
-  size_t i;
+//  size_t i;
   typedef CPPAD_TESTVECTOR(double) Dvector;
 
   // TODO: Set the number of model variables (includes both states and inputs).
