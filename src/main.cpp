@@ -33,8 +33,8 @@ string hasData(string s) {
 }
 
 // Evaluate a polynomial.
-double_t polyeval(Eigen::VectorXd coeffs, double_t x) {
-  double_t result = 0.0;
+double polyeval(Eigen::VectorXd coeffs, double x) {
+  double result = 0.0;
   for (int i = 0; i < coeffs.size(); i++) {
     result += coeffs[i] * pow(x, i);
   }
@@ -48,16 +48,16 @@ double_t polyeval(Eigen::VectorXd coeffs, double_t x) {
  * @param x
  * @return
  */
-double_t polyeval_1st_deri(const VectorXd &coeffs, const double_t x) {
-  double_t result = 0.0;
+double polyeval_1st_deri(const VectorXd &coeffs, const double x) {
+  double result = 0.0;
   for (int i = coeffs.size() - 1; i > 0; i -= 1) {
     result += i * coeffs[i] * pow(x, i - 1);
   }
   return result;
 }
 
-double_t get_desired_psi(const VectorXd &coeffs, const double_t x) {
-  double_t d_fx = polyeval_1st_deri(coeffs, x);
+double get_desired_psi(const VectorXd &coeffs, const double x) {
+  double d_fx = polyeval_1st_deri(coeffs, x);
   return atan(d_fx);
 }
 
@@ -136,12 +136,12 @@ VectorXd polyfit(VectorXd xvals, VectorXd yvals, int order) {
  * @param px
  * @return nav_in_car_x, nav_in_car_y
  */
-vector<double_t> map2car(const double_t psi, const double_t ptsx,
-                   const double_t ptsy, const double_t px, const double_t py) {
-  double_t x = ptsx - px;
-  double_t y = ptsy - py;
+vector<double> map2car(const double psi, const double ptsx,
+                   const double ptsy, const double px, const double py) {
+  double x = ptsx - px;
+  double y = ptsy - py;
 
-  vector<double_t> result;
+  vector<double> result;
   result.push_back(x * cos(-psi) - y * sin(-psi));
   result.push_back(x * sin(-psi) + y * cos(-psi));
   return result;
@@ -154,7 +154,7 @@ vector<double_t> map2car(const double_t psi, const double_t ptsx,
  * @param coeffs
  * @return
  */
-double_t get_cte(const double_t x0, const double_t y0, const VectorXd &coeffs) {
+double get_cte(const double x0, const double y0, const VectorXd &coeffs) {
   return polyeval(coeffs, x0) - y0;
 }
 
@@ -165,7 +165,7 @@ double_t get_cte(const double_t x0, const double_t y0, const VectorXd &coeffs) {
  * @param coeffs
  * @return
  */
-double_t get_epsi(const double_t x0, const double_t psi0, const VectorXd &coeffs) {
+double get_epsi(const double x0, const double psi0, const VectorXd &coeffs) {
   return psi0 - polyeval_1st_deri(coeffs, x0);
 }
 
@@ -182,9 +182,9 @@ double_t get_epsi(const double_t x0, const double_t psi0, const VectorXd &coeffs
  * @param a
  * @param dt
  */
-void progress_state(double_t *x, double_t *y, double_t *psi, double_t *v,
-                    double_t *cte, double_t *epsi, const double_t delta,
-                    const double_t a, const double_t dt) {
+void progress_state(double *x, double *y, double *psi, double *v,
+                    double *cte, double *epsi, const double delta,
+                    const double a, const double dt) {
 
   *x = *x + *v * cos(*psi) * dt;
   *y = *y + *v * sin(*psi) * dt;
@@ -241,8 +241,8 @@ int main() {
            * Global to car
            */
           //Display the waypoints/reference line
-          vector<double_t> next_x_vals;
-          vector<double_t> next_y_vals;
+          vector<double> next_x_vals;
+          vector<double> next_y_vals;
 
           VectorXd ptsx_veh = VectorXd::Zero(ptsx.size());
           VectorXd ptsy_veh = VectorXd::Zero(ptsy.size());
@@ -258,12 +258,12 @@ int main() {
             next_y_vals.push_back(ptxy[1]);
           }
 
-          double_t x = 0;
-          double_t y = 0;
-          double_t psi_veh = 0;
+          double x = 0;
+          double y = 0;
+          double psi_veh = 0;
           VectorXd coeffs = polyfit(ptsx_veh, ptsy_veh, 2);
-          double_t cte = get_cte(x, y, coeffs);
-          double_t epsi = get_epsi(x, psi, coeffs);
+          double cte = get_cte(x, y, coeffs);
+          double epsi = get_epsi(x, psi, coeffs);
           /*
            * To account for latency, predict the vehicle state 100ms into the future
            * before passing it to the solver. Then take the first actuator value
