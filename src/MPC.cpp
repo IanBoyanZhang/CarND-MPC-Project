@@ -174,7 +174,6 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   vars[epsi_start] = epsi;
 
   // Set the initial variable values
-
   Dvector vars_lowerbound(n_vars);
   Dvector vars_upperbound(n_vars);
 

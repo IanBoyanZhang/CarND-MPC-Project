@@ -279,6 +279,7 @@ int main() {
           // invoke solver
           //  vector<double> result = mpc.Solve(state, coeffs);
 //          auto result = mpc.Solve(state, coeffs);
+          mpc.Solve(state, coeffs);
           // steer_value = result[6];
           // throttle_value = result[7];
 
