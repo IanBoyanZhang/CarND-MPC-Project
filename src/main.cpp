@@ -33,12 +33,32 @@ string hasData(string s) {
 }
 
 // Evaluate a polynomial.
-double polyeval(Eigen::VectorXd coeffs, double x) {
-  double result = 0.0;
+double_t polyeval(Eigen::VectorXd coeffs, double_t x) {
+  double_t result = 0.0;
   for (int i = 0; i < coeffs.size(); i++) {
     result += coeffs[i] * pow(x, i);
   }
   return result;
+}
+
+/**
+ * Evaluate first order derivative of fitted polynomial
+ * TODO: Rewrite using Vandermonde matrix?
+ * @param coeffs
+ * @param x
+ * @return
+ */
+double_t polyeval_1st_deri(const VectorXd &coeffs, const double_t x) {
+  double_t result = 0.0;
+  for (int i = coeffs.size() - 1; i > 0; i -= 1) {
+    result += i * coeffs[i] * pow(x, i - 1);
+  }
+  return result;
+}
+
+double_t get_desired_psi(const VectorXd &coeffs, const double_t x) {
+  double_t d_fx = polyeval_1st_deri(coeffs, x);
+  return atan(d_fx);
 }
 
 
@@ -60,8 +80,8 @@ double_t polyeval(VectorXd coeffs, double_t x) {
 // Fit a polynomial.
 // Adapted from
 // https://github.com/JuliaMath/Polynomials.jl/blob/master/src/Polynomials.jl#L676-L716
-VectorXd polyfit(vector<double_t> &xvals, vector<double_t> &yvals,
-                  int order) {
+Eigen::VectorXd polyfit(Eigen::VectorXd xvals, Eigen::VectorXd yvals,
+                        int order) {
   assert(xvals.size() == yvals.size());
   assert(order >= 1 && order <= xvals.size() - 1);
   Eigen::MatrixXd A(xvals.size(), order + 1);
@@ -70,10 +90,9 @@ VectorXd polyfit(vector<double_t> &xvals, vector<double_t> &yvals,
     A(i, 0) = 1.0;
   }
 
-  // TODO: safe casting using size_t?
   for (int j = 0; j < xvals.size(); j++) {
     for (int i = 0; i < order; i++) {
-      A(j, i + 1) = A(j, i) * xvals[j];
+      A(j, i + 1) = A(j, i) * xvals(j);
     }
   }
 
@@ -138,6 +157,31 @@ double_t map2car_y(const double_t psi, const double_t ptsx,
   return y;
 }
 
+/**
+ * Progress state variables after time dt
+ * Based on vehicle kinematics model
+ * @param x
+ * @param y
+ * @param psi
+ * @param v
+ * @param cte
+ * @param epsi
+ * @param delta
+ * @param a
+ * @param dt
+ */
+void progress_state(double_t *x, double_t *y, double_t *psi, double_t *v,
+                    double_t *cte, double_t *epsi, const double_t delta,
+                    const double_t a, const double_t dt) {
+
+  *x = *x + *v * cos(*psi) * dt;
+  *y = *y + *v * sin(*psi) * dt;
+  *psi = *psi + *v * delta / Lf * dt;
+  *cte = *cte + *v * sin(*epsi) * dt;
+  *epsi = *epsi + *v * delta/ Lf * dt;
+  *v = *v + a * delta * dt;
+}
+
 int main() {
   uWS::Hub h;
 
@@ -178,11 +222,27 @@ int main() {
 //          Server usually provides 6 (or 5) navigation points
 //          Can be used to fit desired path
 //          Fit coeffs from waypoints
-          // The polynomial is fitted to a straight line so a polynomial with
-          // order 1 is sufficient
-//          auto coeffs = polyfit(ptsx, ptsy, 2);
-//          auto vars = mpc.Solve(state, coeffs);
+          // TODO: Safecasting using size_t?
+          /**
+           * Global to car
+           */
+          VectorXd ptsx_vec = VectorXd::Zero(ptsx.size());
+          VectorXd ptsy_vec = VectorXd::Zero(ptsy.size());
+          for (auto i = 0; i < ptsx.size() && i < ptsy.size(); i+=1) {
+            ptsx_vec << map2car_x(psi, ptsx[i], ptsy[i], px);
+            ptsy_vec << map2car_y(psi, ptsx[i], ptsy[i], py);
+          }
 
+          VectorXd coeffs = polyfit(ptsx_vec, ptsy_vec, 2);
+// To account for latency, predict the vehicle state 100ms into the future before passing it to the solver.
+//          Then take the first actuator value
+          // Predict the vehicle state 100ms into
+//          double_t cte =
+
+          // Augmented state vector
+          // x, y, psi, cte, epsi in car coordinate
+          // v in global coordinate
+          VectorXd state = VectorXd::Zero(6);
 
           json msgJson;
           // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
