@@ -158,6 +158,28 @@ double_t map2car_y(const double_t psi, const double_t ptsx,
 }
 
 /**
+ *
+ * @param x0
+ * @param y0
+ * @param coeffs
+ * @return
+ */
+double_t get_cte(const double_t x0, const double_t y0, const VectorXd &coeffs) {
+  return polyeval(coeffs, x0) - y0;
+}
+
+/**
+ *
+ * @param x0
+ * @param psi0
+ * @param coeffs
+ * @return
+ */
+double_t get_epsi(const double_t x0, const double_t psi0, const VectorXd &coeffs) {
+  return psi0 - polyeval_1st_deri(coeffs, x0);
+}
+
+/**
  * Progress state variables after time dt
  * Based on vehicle kinematics model
  * @param x
@@ -215,9 +237,11 @@ int main() {
           * Both are in between [-1, 1].
           *
           */
-          double steer_value;
-          double throttle_value;
-
+          /**
+           * Accounting actuators delay
+           */
+          double steer_value = 0;
+          double throttle_value = 0;
 
 //          Server usually provides 6 (or 5) navigation points
 //          Can be used to fit desired path
@@ -226,47 +250,70 @@ int main() {
           /**
            * Global to car
            */
-          VectorXd ptsx_vec = VectorXd::Zero(ptsx.size());
-          VectorXd ptsy_vec = VectorXd::Zero(ptsy.size());
+          //Display the waypoints/reference line
+          vector<double_t> next_x_vals;
+          vector<double_t> next_y_vals;
+
+          VectorXd ptsx_veh = VectorXd::Zero(ptsx.size());
+          VectorXd ptsy_veh = VectorXd::Zero(ptsy.size());
+
+          double_t ptx = 0;
+          double_t pty = 0;
           for (auto i = 0; i < ptsx.size() && i < ptsy.size(); i+=1) {
-            ptsx_vec << map2car_x(psi, ptsx[i], ptsy[i], px);
-            ptsy_vec << map2car_y(psi, ptsx[i], ptsy[i], py);
+            ptx = map2car_x(psi, ptsx[i], ptsy[i], px);
+            ptsx_veh << ptx;
+            next_x_vals.push_back(ptx);
+            pty = map2car_y(psi, ptsx[i], ptsy[i], py);
+            ptsy_veh << pty;
+            next_y_vals.push_back(pty);
           }
 
-          VectorXd coeffs = polyfit(ptsx_vec, ptsy_vec, 2);
-// To account for latency, predict the vehicle state 100ms into the future before passing it to the solver.
-//          Then take the first actuator value
-          // Predict the vehicle state 100ms into
-//          double_t cte =
+          double_t x = 0;
+          double_t y = 0;
+          VectorXd coeffs = polyfit(ptsx_veh, ptsy_veh, 2);
+          double_t cte = get_cte(x, y, coeffs);
+          double_t epsi = get_epsi(x, psi, coeffs);
+          /*
+           * To account for latency, predict the vehicle state 100ms into the future
+           * before passing it to the solver. Then take the first actuator value
+           */
+          progress_state(&x, &y, &psi, &v, &cte, &epsi, steer_value, throttle_value, delay);
 
           // Augmented state vector
           // x, y, psi, cte, epsi in car coordinate
           // v in global coordinate
           VectorXd state = VectorXd::Zero(6);
+          state << x, y, psi, v, cte, epsi;
 
-          json msgJson;
-          // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
-          // Otherwise the values will be in between [-deg2rad(25), deg2rad(25] instead of [-1, 1].
-          msgJson["steering_angle"] = steer_value;
-          msgJson["throttle"] = throttle_value;
+          // invoke solver
+          vector<double> result = mpc.Solve(state, coeffs);
+          steer_value = result[6];
+          throttle_value = result[7];
 
-          //Display the MPC predicted trajectory 
+          std::cout << "steer: " << steer_value << std:endl;
+          std::cout << "throttle: " << throttle_value << std:endl;
+          /**
+           * Test only
+           */
+          steer_value = 0;
+          throttle_value = 0;
+          //Display the MPC predicted trajectory
           vector<double> mpc_x_vals;
           vector<double> mpc_y_vals;
 
+          json msgJson;
+
+          // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
+          // Otherwise the values will be in between [-deg2rad(25), deg2rad(25] instead of [-1, 1].
+          msgJson["steering_angle"] = steer_value/deg2rad(25);
+          msgJson["throttle"] = throttle_value;
+
           //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system
           // the points in the simulator are connected by a Green line
-
           msgJson["mpc_x"] = mpc_x_vals;
           msgJson["mpc_y"] = mpc_y_vals;
-
-          //Display the waypoints/reference line
-          vector<double> next_x_vals;
-          vector<double> next_y_vals;
-
           //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system
           // the points in the simulator are connected by a Yellow line
-
           msgJson["next_x"] = next_x_vals;
           msgJson["next_y"] = next_y_vals;
 
