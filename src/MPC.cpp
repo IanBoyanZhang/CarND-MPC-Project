@@ -13,7 +13,8 @@ double steering_radius_ub = 0.436332;
 double ref_cte = 0;
 double ref_epsi = 0;
 // Target speed
-double ref_v = 40;
+//double ref_v = 40;
+double ref_v = 20;
 
 // The solver takes all the state variables and actuator
 // variables in a singular vector. Thus we should to establish
@@ -104,9 +105,15 @@ class FG_eval {
       AD<double> delta0 = vars[delta_start + i];
       AD<double> a0 = vars[a_start + i];
 
-      AD<double> f0 = coeffs[0] + coeffs[1] * x0 + coeffs[2] * CppAD::pow(x0, 2);
+      AD<double> f0 = coeffs[0] +
+                      coeffs[1] * x0 +
+                      coeffs[2] * CppAD::pow(x0, 2) +
+                      coeffs[3] * CppAD::pow(x0, 3);
+      AD<double> f_t0_rate_of_change = coeffs[1] +
+                                      (2 * coeffs[2] * x0) +
+                                      (3 * coeffs[3] * CppAD::pow(x0, 2));
       // Second order
-      AD<double> psides0 = CppAD::atan(2*coeffs[2] * x0 + coeffs[1]);
+      AD<double> psides0 = CppAD::atan(f_t0_rate_of_change);
 
       // Here's `x` to get you started.
       // The idea here is to constraint this value to be 0.
@@ -234,7 +241,7 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   // options for IPOPT solver
   std::string options;
   // Uncomment this if you'd like more print information
-  options += "Integer print_level  12\n";
+  options += "Integer print_level 0\n";
   // NOTE: Setting sparse to true allows the solver to take advantage
   // of sparse routines, this makes the computation MUCH FASTER. If you
   // can uncomment 1 of these and see if it makes a difference or not but
@@ -266,8 +273,21 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   //
   // {...} is shorthand for creating a vector, so auto x1 = {1.0,2.0}
   // creates a 2 element double vector.
-  return {solution.x[x_start + 1],   solution.x[y_start + 1],
-          solution.x[psi_start + 1], solution.x[v_start + 1],
-          solution.x[cte_start + 1], solution.x[epsi_start + 1],
-          solution.x[delta_start],   solution.x[a_start]};
+
+  vector<double> results;
+
+  std::cout << "Solution lenght: " << solution.x.size() << std::endl;
+
+  /*results.push_back(solution.x[psi_start + 1]);
+  results.push_back(solution.x[v_start + 1]);
+  results.push_back(solution.x[cte_start + 1]);
+  results.push_back(solution.x[epsi_start + 1]);*/
+  steer_value = solution.x[delta_start];
+  throttle_value = solution.x[a_start];
+
+  for (int i = 0; i < N; i+=1) {
+    results.push_back(solution.x[x_start + 1 + i]);
+    results.push_back(solution.x[y_start + 1 + i]);
+  }
+  return results;
 }

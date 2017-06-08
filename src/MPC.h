@@ -35,6 +35,9 @@ class MPC {
  public:
   MPC();
 
+  double steer_value;
+  double throttle_value;
+
   virtual ~MPC();
 
   // Solve the model given an initial state and polynomial coefficients.

@@ -261,7 +261,8 @@ int main() {
           double x = 0;
           double y = 0;
           double psi_veh = 0;
-          VectorXd coeffs = polyfit(ptsx_veh, ptsy_veh, 2);
+          // Going to thrid order
+          VectorXd coeffs = polyfit(ptsx_veh, ptsy_veh, 3);
           double cte = get_cte(x, y, coeffs);
           double epsi = get_epsi(x, psi, coeffs);
           /*
@@ -277,14 +278,13 @@ int main() {
           state << x, y, psi_veh, v, cte, epsi;
 
           // invoke solver
-          //  vector<double> result = mpc.Solve(state, coeffs);
-//          auto result = mpc.Solve(state, coeffs);
-          mpc.Solve(state, coeffs);
-          // steer_value = result[6];
-          // throttle_value = result[7];
+          vector<double> vars = mpc.Solve(state, coeffs);
+          steer_value = mpc.steer_value;
+          throttle_value = mpc.throttle_value;
 
-          // std::cout << "steer: " << steer_value << std::endl;
-          // std::cout << "throttle: " << throttle_value << std::endl;
+          std::cout << "steer: " << steer_value << std::endl;
+          std::cout << "throttle: " << throttle_value << std::endl;
+
           /**
            * Test only
            */
@@ -294,11 +294,17 @@ int main() {
           vector<double> mpc_x_vals;
           vector<double> mpc_y_vals;
 
+          for (auto i=0; i < vars.size(); i+=2) {
+            mpc_x_vals.push_back(vars[i]);
+            mpc_y_vals.push_back(vars[i+1]);
+          }
+
           json msgJson;
 
           // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
           // Otherwise the values will be in between [-deg2rad(25), deg2rad(25] instead of [-1, 1].
-          msgJson["steering_angle"] = steer_value/deg2rad(25);
+          //msgJson["steering_angle"] = -steer_value/deg2rad(25);
+          msgJson["steering_angle"] = -steer_value;
           msgJson["throttle"] = throttle_value;
 
           //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system
@@ -310,6 +316,8 @@ int main() {
           msgJson["next_x"] = next_x_vals;
           msgJson["next_y"] = next_y_vals;
 
+//          std::cout << "Next_x_vals" << next_x_vals << std::endl;
+//          std::cout << "Next_y_vals" << next_y_vals << std::endl;
 
           auto msg = "42[\"steer\"," + msgJson.dump() + "]";
           std::cout << msg << std::endl;
