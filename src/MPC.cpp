@@ -186,9 +186,9 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
 
   // Set lower and upper limits for variables.
   // Set all non-actuators upper and lower limits
-  // to the max negative and postive values
+  // to the max negative and positive values
   for (auto i = 0; i < delta_start; i+=1) {
-    vars_lowerbound[i] = -numeric_limits<double>::max();
+    vars_lowerbound[i] = numeric_limits<double>::lowest();
     vars_upperbound[i] = numeric_limits<double>::max();
   }
 
@@ -276,8 +276,6 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
 
   vector<double> results;
 
-  std::cout << "Solution lenght: " << solution.x.size() << std::endl;
-
   /*results.push_back(solution.x[psi_start + 1]);
   results.push_back(solution.x[v_start + 1]);
   results.push_back(solution.x[cte_start + 1]);
@@ -285,9 +283,14 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   steer_value = solution.x[delta_start];
   throttle_value = solution.x[a_start];
 
-  for (int i = 0; i < N; i+=1) {
+  for (int i = 0; i < N - 1; i+=1) {
     results.push_back(solution.x[x_start + 1 + i]);
     results.push_back(solution.x[y_start + 1 + i]);
   }
+
+/*  for (int i = 0; i < results.size(); i+=1) {
+    std::cout << results[i] << " ";
+  }
+  std::cout << std::endl;*/
   return results;
 }

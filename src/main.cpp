@@ -321,9 +321,6 @@ int main() {
           msgJson["next_x"] = next_x_vals;
           msgJson["next_y"] = next_y_vals;
 
-//          std::cout << "Next_x_vals" << next_x_vals << std::endl;
-//          std::cout << "Next_y_vals" << next_y_vals << std::endl;
-
           auto msg = "42[\"steer\"," + msgJson.dump() + "]";
           std::cout << msg << std::endl;
           // Latency
