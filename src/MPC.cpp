@@ -14,7 +14,7 @@ double ref_cte = 0;
 double ref_epsi = 0;
 // Target speed
 //double ref_v = 40;
-double ref_v = 20;
+double ref_v = 40 * 0.44704;
 
 // The solver takes all the state variables and actuator
 // variables in a singular vector. Thus we should to establish
@@ -56,7 +56,7 @@ class FG_eval {
     // The part of the cost based on the reference state.
     for (int i = 0; i < N; i++) {
       fg[0] += CppAD::pow(vars[cte_start + i] - ref_cte, 2);
-      fg[0] += CppAD::pow(vars[epsi_start + i] - ref_epsi, 2);
+      fg[0] += 500 * CppAD::pow(vars[epsi_start + i] - ref_epsi, 2);
       fg[0] += CppAD::pow(vars[v_start + i] - ref_v, 2);
     }
 
@@ -188,8 +188,8 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   // Set all non-actuators upper and lower limits
   // to the max negative and postive values
   for (auto i = 0; i < delta_start; i+=1) {
-    vars_lowerbound[i] = numeric_limits<double_t>::lowest();
-    vars_upperbound[i] = numeric_limits<double_t>::max();
+    vars_lowerbound[i] = -numeric_limits<double>::max();
+    vars_upperbound[i] = numeric_limits<double>::max();
   }
 
   // The upper and lower limits of delta are set to -25 and 25

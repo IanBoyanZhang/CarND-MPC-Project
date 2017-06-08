@@ -194,6 +194,10 @@ void progress_state(double *x, double *y, double *psi, double *v,
   *v = *v + a * delta * dt;
 }
 
+double mph_to_mps(const double v) {
+  return v * 0.44704;
+}
+
 int main() {
   uWS::Hub h;
 
@@ -261,8 +265,9 @@ int main() {
           double x = 0;
           double y = 0;
           double psi_veh = 0;
-          // Going to thrid order
+          // Going to 3rd order
           VectorXd coeffs = polyfit(ptsx_veh, ptsy_veh, 3);
+          v = mph_to_mps(v);
           double cte = get_cte(x, y, coeffs);
           double epsi = get_epsi(x, psi, coeffs);
           /*
@@ -288,8 +293,8 @@ int main() {
           /**
            * Test only
            */
-          steer_value = 0;
-          throttle_value = 0;
+//          steer_value = 0;
+//          throttle_value = 0;
           //Display the MPC predicted trajectory
           vector<double> mpc_x_vals;
           vector<double> mpc_y_vals;
@@ -303,8 +308,8 @@ int main() {
 
           // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
           // Otherwise the values will be in between [-deg2rad(25), deg2rad(25] instead of [-1, 1].
-          //msgJson["steering_angle"] = -steer_value/deg2rad(25);
-          msgJson["steering_angle"] = -steer_value;
+          msgJson["steering_angle"] = -steer_value/deg2rad(25);
+          //msgJson["steering_angle"] = -steer_value;
           msgJson["throttle"] = throttle_value;
 
           //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system

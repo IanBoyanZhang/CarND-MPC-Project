@@ -34,11 +34,12 @@ const double Lf = 2.67;
 class MPC {
  public:
   MPC();
+  virtual ~MPC();
 
   double steer_value;
   double throttle_value;
 
-  virtual ~MPC();
+  void mph_to_mps(double v);
 
   // Solve the model given an initial state and polynomial coefficients.
   // Return the first actuatotions.
