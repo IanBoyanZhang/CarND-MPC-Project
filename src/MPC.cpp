@@ -82,8 +82,6 @@ class FG_eval {
     fg[1 + cte_start] = vars[cte_start];
     fg[1 + epsi_start] = vars[epsi_start];
 
-    std::cout << "vars" << vars.size() << std::endl;
-
     // The rest of the constraints
     for (int i = 0; i < N - 1; i++) {
       // The state at time t+1 .
@@ -106,7 +104,7 @@ class FG_eval {
       AD<double> delta0 = vars[delta_start + i];
       AD<double> a0 = vars[a_start + i];
 
-      AD<double> f0 = coeffs[0] + coeffs[1] * x0;
+      AD<double> f0 = coeffs[0] + coeffs[1] * x0 + coeffs[2] * CppAD::pow(x0, 2);
       // Second order
       AD<double> psides0 = CppAD::atan(2*coeffs[2] * x0 + coeffs[1]);
 
@@ -183,11 +181,8 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   // Set all non-actuators upper and lower limits
   // to the max negative and postive values
   for (auto i = 0; i < delta_start; i+=1) {
-    //vars_lowerbound[i] = numeric_limits<double_t>::lowest();
-    //vars_lowerbound[i] = numeric_limits<double_t>::max();
-
-    vars_lowerbound[i] = -1.0e19;
-    vars_lowerbound[i] = 1.0e19;
+    vars_lowerbound[i] = numeric_limits<double_t>::lowest();
+    vars_upperbound[i] = numeric_limits<double_t>::max();
   }
 
   // The upper and lower limits of delta are set to -25 and 25
@@ -239,7 +234,7 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   // options for IPOPT solver
   std::string options;
   // Uncomment this if you'd like more print information
-  options += "Integer print_level  0\n";
+  options += "Integer print_level  12\n";
   // NOTE: Setting sparse to true allows the solver to take advantage
   // of sparse routines, this makes the computation MUCH FASTER. If you
   // can uncomment 1 of these and see if it makes a difference or not but
@@ -266,8 +261,6 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   auto cost = solution.obj_value;
   std::cout << "Cost " << cost << std::endl;
 
-  std::cout << "Solution X " << solution.x.size() << std::endl;
-/*
   // TODO: Return the first actuator values. The variables can be accessed with
   // `solution.x[i]`.
   //
@@ -276,6 +269,5 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   return {solution.x[x_start + 1],   solution.x[y_start + 1],
           solution.x[psi_start + 1], solution.x[v_start + 1],
           solution.x[cte_start + 1], solution.x[epsi_start + 1],
-          solution.x[delta_start],   solution.x[a_start]}; */
-  return {};
+          solution.x[delta_start],   solution.x[a_start]};
 }
