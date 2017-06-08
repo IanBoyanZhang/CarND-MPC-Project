@@ -62,13 +62,13 @@ class FG_eval {
 
     // Minimize the use of actuators.
     for (int i = 0; i < N - 1; i++) {
-      fg[0] += CppAD::pow(vars[delta_start + i], 2);
+      fg[0] += 300 * CppAD::pow(vars[delta_start + i], 2);
       fg[0] += CppAD::pow(vars[a_start + i], 2);
     }
 
     // Minimize the value gap between sequential actuations.
     for (int i = 0; i < N - 2; i++) {
-      fg[0] += CppAD::pow(vars[delta_start + i + 1] - vars[delta_start + i], 2);
+      fg[0] += 300 * CppAD::pow(vars[delta_start + i + 1] - vars[delta_start + i], 2);
       fg[0] += CppAD::pow(vars[a_start + i + 1] - vars[a_start + i], 2);
     }
 
@@ -287,10 +287,5 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
     results.push_back(solution.x[x_start + 1 + i]);
     results.push_back(solution.x[y_start + 1 + i]);
   }
-
-/*  for (int i = 0; i < results.size(); i+=1) {
-    std::cout << results[i] << " ";
-  }
-  std::cout << std::endl;*/
   return results;
 }
