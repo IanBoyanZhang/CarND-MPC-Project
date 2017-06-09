@@ -47,8 +47,16 @@ int main(int argc, const char *argv[]) {
   w_cost_ref_seq_steering = hyper_params[5];
   w_cost_ref_seq_throttle = hyper_params[6];
   ref_v = hyper_params[7]*/
-  if (argc != 8) {
+  if (argc != 9) {
     cout << "Please see ./run.sh for example, now running with default parameters" << endl;
+    cout << "cost ref cte" << endl;
+    cout << "cost ref epsi" << endl;
+    cout << "cost ref val v" << endl;
+    cout << "cost ref val steering" << endl;
+    cout << "cost ref val throttle" << endl;
+    cout << "cost ref seq steering" << endl;
+    cout << "cost ref seq throttle" << endl;
+    cout << "target vehicle" << endl;
     hyper_params.push_back(1);
     hyper_params.push_back(500);
     hyper_params.push_back(1);
@@ -59,7 +67,7 @@ int main(int argc, const char *argv[]) {
     // 40 mph
     hyper_params.push_back(40);
   } else {
-    for (auto i = 1; i < 8; i+=1) {
+    for (auto i = 1; i < 9; i+=1) {
       double _val = strtod(argv[i], NULL);
       hyper_params.push_back( _val );
       std::cout << _val << std::endl;

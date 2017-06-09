@@ -16,8 +16,8 @@
 //
 // This is the length from front to CoG that has a similar radius.
 // Length from front to CoG that has a similar radius
-size_t N = 25;
-double dt = 0.05;
+size_t N = 16;
+double dt = 0.016;
 
 // Vehicle configuration variables
 double steering_radius_lb = -0.436332;
@@ -26,7 +26,6 @@ double steering_radius_ub = 0.436332;
 double ref_cte = 0;
 double ref_epsi = 0;
 // Target speed
-//double ref_v = 40;
 double ref_v = 0;
 
 size_t x_start = 0;
@@ -285,8 +284,14 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
 
   // solve the problem
   CppAD::ipopt::solve<Dvector, FG_eval>(
-      options, vars, vars_lowerbound, vars_upperbound, constraints_lowerbound,
-      constraints_upperbound, fg_eval, solution);
+      options,
+      vars,
+      vars_lowerbound,
+      vars_upperbound,
+      constraints_lowerbound,
+      constraints_upperbound,
+      fg_eval,
+      solution);
 
   // Check some of the solution values
   ok &= solution.status == CppAD::ipopt::solve_result<Dvector>::success;
@@ -310,9 +315,9 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   steer_value = solution.x[delta_start];
   throttle_value = solution.x[a_start];
 
-  for (int i = 0; i < N - 1; i+=1) {
-    results.push_back(solution.x[x_start + 1 + i]);
-    results.push_back(solution.x[y_start + 1 + i]);
+  for (int i = 0; i < N; i+=1) {
+    results.push_back(solution.x[x_start + i]);
+    results.push_back(solution.x[y_start + i]);
   }
   return results;
 }
