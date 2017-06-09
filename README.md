@@ -11,7 +11,7 @@ Kinematics Model
 
 I am using standard kinematics model derived as in classroom. 
 
-![kinematics_model](./kinematics_model.png)
+![kinematics_model](./kinematics_model.png =280px)
 
 TODO:
 A more accurate second order (dynamics) model could be used to account orientation difference
@@ -46,7 +46,7 @@ TODO: transform against delay
 Navigation way points are defined in global/unity coordination. For ease of calculation and visualization,
 global navigation way point is transformed into local/vehicle coordination.
 
-<img src="https://cdn-enterprise.discourse.org/udacity/uploads/default/original/4X/3/0/f/30f3d149c4365d9c395ed6103ecf993038b3d318.png" width="210"/>
+<img src="https://cdn-enterprise.discourse.org/udacity/uploads/default/original/4X/3/0/f/30f3d149c4365d9c395ed6103ecf993038b3d318.png" width="270"/>
 
 
 [Forum discussion](https://discussions.udacity.com/t/do-you-need-to-transform-coordiantes/256483)
