@@ -57,6 +57,11 @@ global navigation way point is transformed into local/vehicle coordination.
 
 [Forum discussion](https://discussions.udacity.com/t/do-you-need-to-transform-coordiantes/256483)
 
+Reading List
+---
+[Model-Predictive
+ Motion Planning](http://people.csail.mit.edu/rak/www/sites/default/files/pubs/HowEtal14.pdf)
+
 ---
 
 ## Dependencies
