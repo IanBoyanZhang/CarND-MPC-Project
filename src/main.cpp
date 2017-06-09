@@ -14,7 +14,7 @@ constexpr double pi() { return M_PI; }
 double deg2rad(double x) { return x * pi() / 180; }
 double rad2deg(double x) { return x * 180 / pi(); }
 
-Tools tools;
+extern Tools tools;
 
 // Checks if the SocketIO event has JSON data.
 // If there is data the JSON object in string format will be returned,
@@ -45,7 +45,8 @@ int main(int argc, const char *argv[]) {
   w_cost_ref_val_steering = hyper_params[3];
   w_cost_ref_val_throttle = hyper_params[4];
   w_cost_ref_seq_steering = hyper_params[5];
-  w_cost_ref_seq_throttle = hyper_params[6];*/
+  w_cost_ref_seq_throttle = hyper_params[6];
+  ref_v = hyper_params[7]*/
   if (argc != 8) {
     cout << "Please see ./run.sh for example, now running with default parameters" << endl;
     hyper_params.push_back(1);
@@ -55,6 +56,8 @@ int main(int argc, const char *argv[]) {
     hyper_params.push_back(1);
     hyper_params.push_back(300);
     hyper_params.push_back(1);
+    // 40 mph
+    hyper_params.push_back(40);
   } else {
     for (auto i = 1; i < 8; i+=1) {
       double _val = strtod(argv[i], NULL);

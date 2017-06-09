@@ -27,7 +27,7 @@ double ref_cte = 0;
 double ref_epsi = 0;
 // Target speed
 //double ref_v = 40;
-double ref_v = 40 * 1609/3600;
+double ref_v = 0;
 
 size_t x_start = 0;
 size_t y_start = x_start + N;
@@ -45,6 +45,8 @@ double w_cost_ref_val_steering;
 double w_cost_ref_val_throttle;
 double w_cost_ref_seq_steering;
 double w_cost_ref_seq_throttle;
+
+Tools tools;
 
 class FG_eval {
  public:
@@ -167,6 +169,7 @@ MPC::MPC(vector<double> &hyper_params) {
   w_cost_ref_val_throttle = hyper_params[4];
   w_cost_ref_seq_steering = hyper_params[5];
   w_cost_ref_seq_throttle = hyper_params[6];
+  ref_v = tools.mph_to_mps(hyper_params[7]);
 }
 MPC::~MPC() {}
 
