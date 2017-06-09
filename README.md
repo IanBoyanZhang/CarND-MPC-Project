@@ -1,5 +1,17 @@
 # CarND-Controls-MPC
-Self-Driving Car Engineer Nanodegree Program
+
+Please check this link for [video](https://www.youtube.com/watch?v=yaBB73sKZ4o&feature=youtu.be)
+
+Current controller set up can achieve stable run around 40 to 45 mph. I am not quite happy with the steady state speed, 
+my target speed is at least 80mph to 100mph. For the time being, I am submitting project as is, will come back later to 
+improve the result.
+
+Kinematics Model
+--
+
+I am using standard kinematics model derived as in classroom. 
+
+![kinematics_model](kinematics_model.png)
 
 ---
 
