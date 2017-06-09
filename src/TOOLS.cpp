@@ -13,7 +13,7 @@ double Tools::mph_to_mps(double v) {
 // Fit a polynomial.
 // Adapted from
 // https://github.com/JuliaMath/Polynomials.jl/blob/master/src/Polynomials.jl#L676-L716
-VectorXd Tools::polyfit(VectorXd xvals, VectorXd yvals, int order) {
+/*VectorXd Tools::polyfit(VectorXd xvals, VectorXd yvals, int order) {
   assert(xvals.size() == yvals.size());
   assert(order >= 1 && order <= xvals.size() - 1);
   Eigen::MatrixXd A(xvals.size(), order + 1);
@@ -30,7 +30,7 @@ VectorXd Tools::polyfit(VectorXd xvals, VectorXd yvals, int order) {
 
   auto Q = A.householderQr();
   return Q.solve(yvals);
-}
+}*/
 
 /**
  * Fit a polynomial
@@ -41,8 +41,7 @@ VectorXd Tools::polyfit(VectorXd xvals, VectorXd yvals, int order) {
  * @param order
  * @return
  */
-/*
-VectorXd polyfit(VectorXd xvals, VectorXd yvals, int order) {
+VectorXd Tools::polyfit(VectorXd xvals, VectorXd yvals, int order) {
   assert(xvals.size() == yvals.size());
   assert(order >= 1 && order <= xvals.size() - 1);
   MatrixXd A = MatrixXd::Zero(xvals.size(), order + 1);
@@ -55,7 +54,7 @@ VectorXd polyfit(VectorXd xvals, VectorXd yvals, int order) {
 
   auto Q = A.householderQr();
   return Q.solve(yvals);
-}*/
+}
 
 
 // Evaluate a polynomial.

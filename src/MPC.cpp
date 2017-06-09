@@ -16,8 +16,9 @@
 //
 // This is the length from front to CoG that has a similar radius.
 // Length from front to CoG that has a similar radius
-size_t N = 16;
-double dt = 0.016;
+//size_t N = 16;
+size_t N = 10;
+double dt = 0.3;
 
 // Vehicle configuration variables
 double steering_radius_lb = -0.436332;

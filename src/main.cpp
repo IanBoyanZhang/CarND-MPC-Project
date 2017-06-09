@@ -58,11 +58,11 @@ int main(int argc, const char *argv[]) {
     cout << "cost ref seq throttle" << endl;
     cout << "target vehicle" << endl;
     hyper_params.push_back(1);
-    hyper_params.push_back(500);
+    hyper_params.push_back(150);
     hyper_params.push_back(1);
-    hyper_params.push_back(300);
+    hyper_params.push_back(150);
     hyper_params.push_back(1);
-    hyper_params.push_back(300);
+    hyper_params.push_back(100);
     hyper_params.push_back(1);
     // 40 mph
     hyper_params.push_back(40);
