@@ -135,6 +135,7 @@ int main(int argc, const char *argv[]) {
            * 3rd order trajectory fitting using navigation points
            *************************************************************************/
           VectorXd coeffs = tools.polyfit(ptsx_veh, ptsy_veh, 3);
+
           v = tools.mph_to_mps(v);
           double cte = tools.get_cte(x, y, coeffs);
           double epsi = tools.get_epsi(x, psi, coeffs);

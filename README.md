@@ -13,6 +13,36 @@ I am using standard kinematics model derived as in classroom.
 
 ![kinematics_model](./kinematics_model.png)
 
+TODO:
+A more accurate second order (dynamics) model could be used to account orientation difference
+caused by acceleration.
+
+Cost function and optimization
+---
+![Cost function](./cost_func.png)
+
+In this project, the MPC problem is essentially posed as receding horizontal optimization problem. Ipopt is a library read as interior points optimization.
+The name suggests interior points methods which are a certain class of algorithms widely used in linear and 
+ nonlinear optimization problem. After poking around Ipopt library, it seems internally it is using convex optimization rules for calculating
+ optimal points. KKT condition is also mentioned in one of debugging output. The cost function itself is also in a form of 
+ SOS (sum of square) of quadratic functions which have quite a few interesting properties worth learning.
+ 
+ * TODO: Rdd curvature based velocity weight terms
+ * TODO: Read more about convex/non-convex optimization, interior points method, KKT rules
+ * TODO: Read more about SOS (sum of square) quadratic cost functions, regularization and other related topics
+
+Dealing with latency
+---
+In this project, we need to counter measure latency. Because predictive nature of latency and 
+assumption of perfect kinematics model without disturbance. The solution is relatively naive.
+To account for latency, we predict the vehicle state in the future using vehicle dynamics introduced above before passing it to the solver.
+Then take the actuator output at the moment for future control input as the latency is modeled after
+actuator delay.
+
+Coordinate transformation
+---
+TODO: transform against delay  
+
 ---
 
 ## Dependencies
