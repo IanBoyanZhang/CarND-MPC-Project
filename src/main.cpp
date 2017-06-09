@@ -1,21 +1,20 @@
 #include <math.h>
 #include <uWS/uWS.h>
-#include <chrono>
-#include <iostream>
 #include <thread>
-#include <vector>
-#include "Eigen-3.3/Eigen/Core"
-#include "Eigen-3.3/Eigen/QR"
 #include "MPC.h"
+#include "Tools.h"
 #include "json.hpp"
 
 // for convenience
 using json = nlohmann::json;
+using namespace std;
 
 // For converting back and forth between radians and degrees.
 constexpr double pi() { return M_PI; }
 double deg2rad(double x) { return x * pi() / 180; }
 double rad2deg(double x) { return x * 180 / pi(); }
+
+Tools tools;
 
 // Checks if the SocketIO event has JSON data.
 // If there is data the JSON object in string format will be returned,
@@ -32,13 +31,40 @@ string hasData(string s) {
   return "";
 }
 
-int main() {
+int main(int argc, const char *argv[]) {
   uWS::Hub h;
 
-  // MPC is initialized here!
-  MPC mpc;
+  vector<double> hyper_params;
 
-  Tools tools;
+  /*************************************************************************
+   * Cost weights hyper parameters
+   *************************************************************************/
+  /*w_cost_ref_cte = hyper_params[0];
+  w_cost_ref_epsi = hyper_params[1];
+  w_cost_ref_v = hyper_params[2];
+  w_cost_ref_val_steering = hyper_params[3];
+  w_cost_ref_val_throttle = hyper_params[4];
+  w_cost_ref_seq_steering = hyper_params[5];
+  w_cost_ref_seq_throttle = hyper_params[6];*/
+  if (argc != 8) {
+    cout << "Please see ./run.sh for example, now running with default parameters" << endl;
+    hyper_params.push_back(1);
+    hyper_params.push_back(500);
+    hyper_params.push_back(1);
+    hyper_params.push_back(300);
+    hyper_params.push_back(1);
+    hyper_params.push_back(300);
+    hyper_params.push_back(1);
+  } else {
+    for (auto i = 1; i < 8; i+=1) {
+      double _val = strtod(argv[i], NULL);
+      hyper_params.push_back( _val );
+      std::cout << _val << std::endl;
+    }
+  }
+
+  // MPC is initialized here!
+  MPC mpc(hyper_params);
 
   h.onMessage([&mpc](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
                      uWS::OpCode opCode) {
@@ -62,25 +88,18 @@ int main() {
           double v = j[1]["speed"];
 
           /*
-          * TODO: Calculate steering angle and throttle using MPC.
-          *
-          * Both are in between [-1, 1].
-          *
-          */
-          /**
-           * Accounting actuators delay
+           * Both are in between [-1, 1].
            */
           double steer_value = j[1]["steering_angle"];
           double throttle_value = j[1]["throttle"];
 
-//          Server usually provides 6 navigation points
-//          Can be used to fit desired path
-//          Fit coeffs from waypoints
-          // TODO: Safecasting using size_t?
-          /**
-           * Global to car
-           */
-          //Display the waypoints/reference line
+          /*************************************************************************
+           * Transform way points coordinates to vehicle coordinates
+           *************************************************************************/
+          /*************************************************************************
+           * Server usually provides 6 navigation points
+           * Used for fitting desired trajectory
+           *************************************************************************/
           vector<double> next_x_vals;
           vector<double> next_y_vals;
 
@@ -89,7 +108,7 @@ int main() {
 
           vector<double> ptxy;
           for (auto i = 0; i < ptsx.size() && i < ptsy.size(); i+=1) {
-            ptxy = map2car(psi, ptsx[i], ptsy[i], px, py);
+            ptxy = tools.map2car(psi, ptsx[i], ptsy[i], px, py);
 
             ptsx_veh(i) = ptxy[0];
             next_x_vals.push_back(ptxy[0]);
@@ -101,24 +120,26 @@ int main() {
           double x = 0;
           double y = 0;
           double psi_veh = 0;
-          // Going to 3rd order
-          VectorXd coeffs = polyfit(ptsx_veh, ptsy_veh, 3);
-          v = mph_to_mps(v);
-          double cte = get_cte(x, y, coeffs);
-          double epsi = get_epsi(x, psi, coeffs);
-          /*
+          /*************************************************************************
+           * 3rd order trajectory fitting using navigation points
+           *************************************************************************/
+          VectorXd coeffs = tools.polyfit(ptsx_veh, ptsy_veh, 3);
+          v = tools.mph_to_mps(v);
+          double cte = tools.get_cte(x, y, coeffs);
+          double epsi = tools.get_epsi(x, psi, coeffs);
+          /*************************************************************************
            * To account for latency, predict the vehicle state 100ms into the future
            * before passing it to the solver. Then take the first actuator value
-           */
-          progress_state(&x, &y, &psi, &v, &cte, &epsi, steer_value, throttle_value, 0.1);
+           * x, y, psi, cte, epsi Vehicle coordinate
+           * v Global coordinate
+           *************************************************************************/
+          tools.progress_state(&x, &y, &psi, &v, &cte, &epsi, steer_value, throttle_value, latency, Lf);
 
-          // Augmented state vector
-          // x, y, psi, cte, epsi in car coordinate
-          // v in global coordinate
           VectorXd state = VectorXd::Zero(6);
           state << x, y, psi_veh, v, cte, epsi;
-
-          // invoke solver
+          /*************************************************************************
+           * Internal points solver for cost optimization (minimization)
+           *************************************************************************/
           vector<double> vars = mpc.Solve(state, coeffs);
           steer_value = mpc.steer_value;
           throttle_value = mpc.throttle_value;
@@ -126,11 +147,6 @@ int main() {
           std::cout << "steer: " << steer_value << std::endl;
           std::cout << "throttle: " << throttle_value << std::endl;
 
-          /**
-           * Test only
-           */
-//          steer_value = 0;
-//          throttle_value = 0;
           //Display the MPC predicted trajectory
           vector<double> mpc_x_vals;
           vector<double> mpc_y_vals;
@@ -142,6 +158,9 @@ int main() {
             mpc_y_vals.push_back(vars[i+1]);
           }
 
+          /*************************************************************************
+           * Sending commands back to server
+           *************************************************************************/
           json msgJson;
 
           // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.

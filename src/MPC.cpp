@@ -1,8 +1,21 @@
 #include "MPC.h"
+#include "Tools.h"
 #include <cppad/ipopt/solve.hpp>
 
-
-// TODO: Set the timestep length and duration
+/**
+ * Global variables
+ */
+// This value assumes the model presented in the classroom is used.
+//
+// It was obtained by measuring the radius formed by running the vehicle in the
+// simulator around in a circle with a constant steering angle and velocity on a
+// flat terrain.
+//
+// Lf was tuned until the the radius formed by the simulating the model
+// presented in the classroom matched the previous radius.
+//
+// This is the length from front to CoG that has a similar radius.
+// Length from front to CoG that has a similar radius
 size_t N = 25;
 double dt = 0.05;
 
@@ -14,14 +27,8 @@ double ref_cte = 0;
 double ref_epsi = 0;
 // Target speed
 //double ref_v = 40;
-double ref_v = 40 * 0.44704;
+double ref_v = 40 * 1609/3600;
 
-// The solver takes all the state variables and actuator
-// variables in a singular vector. Thus we should to establish
-// when one variable starts and another ends to make our lifes easier
-
-// All global variables?
-// unsigned integer
 size_t x_start = 0;
 size_t y_start = x_start + N;
 size_t psi_start = y_start + N;
@@ -31,16 +38,25 @@ size_t epsi_start = cte_start + N;
 size_t delta_start = epsi_start + N;
 size_t a_start = delta_start + N - 1;
 
+double w_cost_ref_cte;
+double w_cost_ref_epsi;
+double w_cost_ref_v;
+double w_cost_ref_val_steering;
+double w_cost_ref_val_throttle;
+double w_cost_ref_seq_steering;
+double w_cost_ref_seq_throttle;
+
 class FG_eval {
  public:
-  // Fitted plynomial coefficients
+  // Polynomial coefficients
   Eigen::VectorXd coeffs;
+
   FG_eval(Eigen::VectorXd coeffs) { this->coeffs = coeffs; }
 
   typedef CPPAD_TESTVECTOR(AD<double>) ADvector;
   void operator()(ADvector& fg, const ADvector& vars) {
     // TODO: implement MPC
-    // `fg` a vector of the cost constraints, `vars` is a vector of variable values (state & actuators)
+    // `fg` a vector of the cost and constraints, `vars` is a vector of variable values (state & actuators)
 
     // NOTE: You'll probably go back and forth between this function and
     // the Solver function below.
@@ -55,21 +71,21 @@ class FG_eval {
 
     // The part of the cost based on the reference state.
     for (int i = 0; i < N; i++) {
-      fg[0] += CppAD::pow(vars[cte_start + i] - ref_cte, 2);
-      fg[0] += 500 * CppAD::pow(vars[epsi_start + i] - ref_epsi, 2);
-      fg[0] += CppAD::pow(vars[v_start + i] - ref_v, 2);
+      fg[0] += w_cost_ref_cte * CppAD::pow(vars[cte_start + i] - ref_cte, 2);
+      fg[0] += w_cost_ref_epsi * CppAD::pow(vars[epsi_start + i] - ref_epsi, 2);
+      fg[0] += w_cost_ref_v * CppAD::pow(vars[v_start + i] - ref_v, 2);
     }
 
     // Minimize the use of actuators.
     for (int i = 0; i < N - 1; i++) {
-      fg[0] += 300 * CppAD::pow(vars[delta_start + i], 2);
-      fg[0] += CppAD::pow(vars[a_start + i], 2);
+      fg[0] += w_cost_ref_val_steering * CppAD::pow(vars[delta_start + i], 2);
+      fg[0] += w_cost_ref_val_throttle * CppAD::pow(vars[a_start + i], 2);
     }
 
     // Minimize the value gap between sequential actuations.
     for (int i = 0; i < N - 2; i++) {
-      fg[0] += 300 * CppAD::pow(vars[delta_start + i + 1] - vars[delta_start + i], 2);
-      fg[0] += CppAD::pow(vars[a_start + i + 1] - vars[a_start + i], 2);
+      fg[0] += w_cost_ref_seq_steering * CppAD::pow(vars[delta_start + i + 1] - vars[delta_start + i], 2);
+      fg[0] += w_cost_ref_seq_throttle * CppAD::pow(vars[a_start + i + 1] - vars[a_start + i], 2);
     }
 
     // Setup Constraints
@@ -140,18 +156,26 @@ class FG_eval {
 //
 // MPC class definition implementation.
 //
-MPC::MPC() {}
+MPC::MPC(vector<double> &hyper_params) {
+  /*************************************************************************
+   * Cost weights hyper parameters
+   *************************************************************************/
+  w_cost_ref_cte = hyper_params[0];
+  w_cost_ref_epsi = hyper_params[1];
+  w_cost_ref_v = hyper_params[2];
+  w_cost_ref_val_steering = hyper_params[3];
+  w_cost_ref_val_throttle = hyper_params[4];
+  w_cost_ref_seq_steering = hyper_params[5];
+  w_cost_ref_seq_throttle = hyper_params[6];
+}
 MPC::~MPC() {}
 
 vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   bool ok = true;
-//  size_t i;
   typedef CPPAD_TESTVECTOR(double) Dvector;
 
-  // TODO: Set the number of model variables (includes both states and inputs).
   // For example: If the state is a 4 element vector, the actuators is a 2
   // element vector and there are 10 timesteps. The number of variables is:
-  //
 
   double x = state[0];
   double y = state[1];
@@ -168,7 +192,7 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   // Initial value of the independent variables.
   // SHOULD BE 0 besides initial state.
   Dvector vars(n_vars);
-  for (int i = 0; i < n_vars; i++) {
+  for (auto i = 0; i < n_vars; i++) {
     vars[i] = 0.0;
   }
 
@@ -188,8 +212,8 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   // Set all non-actuators upper and lower limits
   // to the max negative and positive values
   for (auto i = 0; i < delta_start; i+=1) {
-    vars_lowerbound[i] = numeric_limits<double>::lowest();
-    vars_upperbound[i] = numeric_limits<double>::max();
+    vars_lowerbound[i] = std::numeric_limits<double>::lowest();
+    vars_upperbound[i] = std::numeric_limits<double>::max();
   }
 
   // The upper and lower limits of delta are set to -25 and 25
@@ -202,7 +226,7 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
 
   // Acceleration/deacceleration upper and lower limits.
   // NOTE: Feel free to change this to something else.
-  for (int i = a_start; i < n_vars; i++) {
+  for (auto i = a_start; i < n_vars; i++) {
     vars_lowerbound[i] = -1.0;
     vars_upperbound[i] = 1.0;
   }
@@ -268,7 +292,7 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   auto cost = solution.obj_value;
   std::cout << "Cost " << cost << std::endl;
 
-  // TODO: Return the first actuator values. The variables can be accessed with
+  // Return the first actuator values. The variables can be accessed with
   // `solution.x[i]`.
   //
   // {...} is shorthand for creating a vector, so auto x1 = {1.0,2.0}

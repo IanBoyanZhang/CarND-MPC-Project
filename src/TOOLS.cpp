@@ -1,4 +1,10 @@
-#include "TOOLS.h"
+#include "Tools.h"
+
+Tools::Tools() {
+
+}
+
+Tools::~Tools(){}
 
 double Tools::mph_to_mps(double v) {
   return v * 1609/3600;
@@ -138,7 +144,7 @@ double Tools::get_epsi(const double x0, const double psi0, const VectorXd &coeff
  */
 void Tools::progress_state(double *x, double *y, double *psi, double *v,
                     double *cte, double *epsi, const double delta,
-                    const double a, const double dt) {
+                    const double a, const double dt, const double Lf) {
 
   *x = *x + *v * cos(*psi) * dt;
   *y = *y + *v * sin(*psi) * dt;
