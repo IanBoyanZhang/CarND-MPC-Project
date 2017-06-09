@@ -11,7 +11,7 @@ Kinematics Model
 
 I am using standard kinematics model derived as in classroom. 
 
-![kinematics_model](./kinematics_model.png =280px)
+![kinematics_model](./kinematics_model.png)
 
 TODO:
 A more accurate second order (dynamics) model could be used to account orientation difference
@@ -20,6 +20,12 @@ caused by acceleration.
 Cost function and optimization
 ---
 ![Cost function](./cost_func.png)
+
+Look ahead time is set as T = N (10) * dt (0.3) = 3s. As vehicle target speed set in 40mph. 3 seconds roughly allow predictive controller
+to see ahead 50m. N = 25, N = 20, N = 16 are used before, as experiments shown, N = 10 has similar effect with larger N number when total look ahead time Ts are roughly same.
+Hence, we increase time step difference dt to 0.3. It reduce computational load, however further experiment shows to maintain stability at current speed,
+dt would not exceed current value. Large cost weights are assigned to orientation error, large steering angle and large steering input change within unit sample interval.
+To achieve smooth, responsive steering control. 
 
 In this project, the MPC problem is essentially posed as receding horizontal optimization problem. Ipopt is a library read as interior points optimization.
 The name suggests interior points methods which are a certain class of algorithms widely used in linear and 
