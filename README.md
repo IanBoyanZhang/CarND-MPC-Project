@@ -11,7 +11,7 @@ Kinematics Model
 
 I am using standard kinematics model derived as in classroom. 
 
-![kinematics_model](kinematics_model.png)
+![kinematics_model](./kinematics_model.png)
 
 ---
 
