@@ -1,10 +1,14 @@
 # CarND-Controls-MPC
 
-Please check this link for [video](https://www.youtube.com/watch?v=yaBB73sKZ4o&feature=youtu.be)
+Please check this link for [video](https://youtu.be/-Vq2laksfrU)
 
-Current controller set up can achieve stable run around 40 to 45 mph. I am not quite happy with the steady state speed, 
-my target speed is at least 80mph to 100mph. For the time being, I am submitting project as is, will come back later to 
-improve the result.
+The control runs much faster than previous submission with better performance of maintaining steady state.
+
+There are a couple of issues with current simulator and vehicle physics model setup.
+
+ 1. Relation of throttle and acceleration was not considered
+ 2. Converting velocity from miles per hour (mph) unit used by Unity to SI unit makes model unstable.
+ 3. Normalizing steer angle to -1, 1 makes model unstable
 
 Kinematics Model
 --
