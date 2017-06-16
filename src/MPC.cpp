@@ -17,34 +17,37 @@
 // This is the length from front to CoG that has a similar radius.
 // Length from front to CoG that has a similar radius
 //size_t N = 16;
-size_t N = 10;
-double dt = 0.1;
+const size_t N = 10;
+const double dt = 0.1;
 
 // Vehicle configuration variables
-double steering_radius_lb = -0.436332;
-double steering_radius_ub = 0.436332;
+const double steering_radius_lb = -0.436332;
+const double steering_radius_ub = 0.436332;
 
-double ref_cte = 0;
-double ref_epsi = 0;
+const double ref_cte = 0;
+const double ref_epsi = 0;
 // Target speed
-double ref_v = 0;
+double ref_v = 99;
 
-size_t x_start = 0;
-size_t y_start = x_start + N;
-size_t psi_start = y_start + N;
-size_t v_start = psi_start + N;
-size_t cte_start = v_start + N;
-size_t epsi_start = cte_start + N;
-size_t delta_start = epsi_start + N;
-size_t a_start = delta_start + N - 1;
+const size_t x_start = 0;
+const size_t y_start = x_start + N;
+const size_t psi_start = y_start + N;
+const size_t v_start = psi_start + N;
+const size_t cte_start = v_start + N;
+const size_t epsi_start = cte_start + N;
+const size_t delta_start = epsi_start + N;
+const size_t a_start = delta_start + N - 1;
 
-double w_cost_ref_cte;
-double w_cost_ref_epsi;
-double w_cost_ref_v;
-double w_cost_ref_val_steering;
-double w_cost_ref_val_throttle;
-double w_cost_ref_seq_steering;
-double w_cost_ref_seq_throttle;
+/*************************************************************************
+ * Cost weights hyper parameters
+ *************************************************************************/
+const double w_cost_ref_cte = 1500;
+const double w_cost_ref_epsi = 1500;
+const double w_cost_ref_v = 1;
+const double w_cost_ref_val_steering = 20;
+const double w_cost_ref_val_throttle = 10;
+const double w_cost_ref_seq_steering = 250;
+const double w_cost_ref_seq_throttle = 15;
 
 Tools tools;
 
@@ -92,6 +95,14 @@ class FG_eval {
 
     // Setup Constraints
     // g(x) model constraints
+
+    //enforce init state does not change.
+    fg[1 + x_start] = vars[x_start];
+    fg[1 + y_start] = vars[y_start];
+    fg[1 + psi_start] = vars[psi_start];
+    fg[1 + v_start] = vars[v_start];
+    fg[1 + cte_start] = vars[cte_start];
+    fg[1 + epsi_start] = vars[epsi_start];
 
     // The rest of the constraints
     for (int i = 0; i < N - 1; i++) {
@@ -150,22 +161,10 @@ class FG_eval {
 //
 // MPC class definition implementation.
 //
-MPC::MPC(vector<double> &hyper_params) {
-  /*************************************************************************
-   * Cost weights hyper parameters
-   *************************************************************************/
-  w_cost_ref_cte = hyper_params[0];
-  w_cost_ref_epsi = hyper_params[1];
-  w_cost_ref_v = hyper_params[2];
-  w_cost_ref_val_steering = hyper_params[3];
-  w_cost_ref_val_throttle = hyper_params[4];
-  w_cost_ref_seq_steering = hyper_params[5];
-  w_cost_ref_seq_throttle = hyper_params[6];
-  ref_v = tools.mph_to_mps(hyper_params[7]);
-}
+MPC::MPC() {}
 MPC::~MPC() {}
 
-vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
+void MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   bool ok = true;
   typedef CPPAD_TESTVECTOR(double) Dvector;
 
@@ -299,18 +298,14 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   // {...} is shorthand for creating a vector, so auto x1 = {1.0,2.0}
   // creates a 2 element double vector.
 
-  vector<double> results;
-
-  /*results.push_back(solution.x[psi_start + 1]);
-  results.push_back(solution.x[v_start + 1]);
-  results.push_back(solution.x[cte_start + 1]);
-  results.push_back(solution.x[epsi_start + 1]);*/
   steer_value = solution.x[delta_start];
   throttle_value = solution.x[a_start];
 
+  predicted_x_vals.clear();
+  predicted_y_vals.clear();
+
   for (int i = 0; i < N; i+=1) {
-    results.push_back(solution.x[x_start + i]);
-    results.push_back(solution.x[y_start + i]);
+    predicted_x_vals.push_back(solution.x[x_start + i]);
+    predicted_y_vals.push_back(solution.x[y_start + i]);
   }
-  return results;
 }

@@ -34,48 +34,10 @@ string hasData(string s) {
 int main(int argc, const char *argv[]) {
   uWS::Hub h;
 
-  vector<double> hyper_params;
 
-  /*************************************************************************
-   * Cost weights hyper parameters
-   *************************************************************************/
-  /*w_cost_ref_cte = hyper_params[0];
-  w_cost_ref_epsi = hyper_params[1];
-  w_cost_ref_v = hyper_params[2];
-  w_cost_ref_val_steering = hyper_params[3];
-  w_cost_ref_val_throttle = hyper_params[4];
-  w_cost_ref_seq_steering = hyper_params[5];
-  w_cost_ref_seq_throttle = hyper_params[6];
-  ref_v = hyper_params[7]*/
-  if (argc != 9) {
-    cout << "Please see ./run.sh for example, now running with default parameters" << endl;
-    cout << "cost ref cte" << endl;
-    cout << "cost ref epsi" << endl;
-    cout << "cost ref val v" << endl;
-    cout << "cost ref val steering" << endl;
-    cout << "cost ref val throttle" << endl;
-    cout << "cost ref seq steering" << endl;
-    cout << "cost ref seq throttle" << endl;
-    cout << "target vehicle" << endl;
-    hyper_params.push_back(1);
-    hyper_params.push_back(150);
-    hyper_params.push_back(1);
-    hyper_params.push_back(150);
-    hyper_params.push_back(1);
-    hyper_params.push_back(100);
-    hyper_params.push_back(1);
-    // 40 mph
-    hyper_params.push_back(40);
-  } else {
-    for (auto i = 1; i < 9; i+=1) {
-      double _val = strtod(argv[i], NULL);
-      hyper_params.push_back( _val );
-      std::cout << _val << std::endl;
-    }
-  }
 
   // MPC is initialized here!
-  MPC mpc(hyper_params);
+  MPC mpc;
 
   h.onMessage([&mpc](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
                      uWS::OpCode opCode) {
@@ -136,39 +98,43 @@ int main(int argc, const char *argv[]) {
            *************************************************************************/
           VectorXd coeffs = tools.polyfit(ptsx_veh, ptsy_veh, 3);
 
-          v = tools.mph_to_mps(v);
-          double cte = tools.get_cte(x, y, coeffs);
-          double epsi = tools.get_epsi(x, psi, coeffs);
+          //v = tools.mph_to_mps(v);
+          //double cte = tools.get_cte(x, y, coeffs);
+          double cte = coeffs[0];
+          //double get_espi = tool.get_epsi(x, psi_veh, coeffs);
+          double epsi = -atan(coeffs[1]);
           /*************************************************************************
            * To account for latency, predict the vehicle state 100ms into the future
            * before passing it to the solver. Then take the first actuator value
            * x, y, psi, cte, epsi Vehicle coordinate
            * v Global coordinate
            *************************************************************************/
-          tools.progress_state(&x, &y, &psi, &v, &cte, &epsi, steer_value, throttle_value, latency, Lf);
+
+          const double px_1    = 0.0 + v * latency;
+          const double py_1    = 0.0;
+          const double psi_1   = 0.0 + v * (-steer_value) / Lf * latency;
+          const double v_1     = v + throttle_value * latency;
+          const double cte_1   = cte + v * sin(epsi) * latency;
+          const double epsi_1  = epsi + v * (-steer_value) / Lf * latency;
 
           VectorXd state = VectorXd::Zero(6);
-          state << x, y, psi_veh, v, cte, epsi;
+          state << px_1, py_1, psi_1, v_1, cte_1, epsi_1;
           /*************************************************************************
            * Internal points solver for cost optimization (minimization)
            *************************************************************************/
-          vector<double> vars = mpc.Solve(state, coeffs);
+          mpc.Solve(state, coeffs);
           steer_value = mpc.steer_value;
           throttle_value = mpc.throttle_value;
 
           std::cout << "steer: " << steer_value << std::endl;
           std::cout << "throttle: " << throttle_value << std::endl;
 
-          //Display the MPC predicted trajectory
-          vector<double> mpc_x_vals;
-          vector<double> mpc_y_vals;
           /*************************************************************************
            * Unpack returned predicted trajectory from Optimization Solver
+           * Display the MPC predicted trajectory
            *************************************************************************/
-          for (auto i=0; i < vars.size(); i+=2) {
-            mpc_x_vals.push_back(vars[i]);
-            mpc_y_vals.push_back(vars[i+1]);
-          }
+          vector<double> mpc_x_vals = mpc.predicted_x_vals;
+          vector<double> mpc_y_vals = mpc.predicted_y_vals;
 
           /*************************************************************************
            * Sending commands back to server
@@ -178,6 +144,7 @@ int main(int argc, const char *argv[]) {
           // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
           // Otherwise the values will be in between [-deg2rad(25), deg2rad(25] instead of [-1, 1].
           //msgJson["steering_angle"] = -steer_value/deg2rad(25);
+          // The car will steer ferociously once we normalize steering angle
           msgJson["steering_angle"] = -steer_value;
           msgJson["throttle"] = throttle_value;
 

@@ -24,9 +24,6 @@ public:
                   const double ptsy, const double px, const double py);
   double get_cte(const double x0, const double y0, const VectorXd &coeffs);
   double get_epsi(const double x0, const double psi0, const VectorXd &coeffs);
-  void progress_state(double *x, double *y, double *psi, double *v,
-                      double *cte, double *epsi, const double delta,
-                      const double a, const double dt, const double Lf);
 };
 
 

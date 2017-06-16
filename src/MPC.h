@@ -16,16 +16,19 @@ const double latency = 0.1;
 
 class MPC {
 public:
-  MPC(std::vector<double> &hyper_params);
+  MPC();
 
   virtual ~MPC();
 
   double steer_value;
   double throttle_value;
 
+  std::vector<double> predicted_x_vals;
+  std::vector<double> predicted_y_vals;
+
   // Solve the model given an initial state and polynomial coefficients.
   // Return the first actuations.
-  std::vector<double> Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs);
+  void Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs);
 };
 
 #endif /* MPC_H */

@@ -92,7 +92,8 @@ vector<double> Tools::map2car(const double psi, const double ptsx,
  * @return
  */
 double Tools::get_cte(const double x0, const double y0, const VectorXd &coeffs) {
-  return polyeval(coeffs, x0) - y0;
+  //return polyeval(coeffs, x0) - y0;
+  return coeffs[0];
 }
 
 /**
@@ -105,29 +106,4 @@ double Tools::get_cte(const double x0, const double y0, const VectorXd &coeffs) 
 double Tools::get_epsi(const double x0, const double psi0, const VectorXd &coeffs) {
   //return psi0 - polyeval_1st_deri(coeffs, x0);
   return -atan(coeffs[1]);
-}
-
-/**
- * Progress state variables after time dt
- * Based on vehicle kinematics model
- * @param x
- * @param y
- * @param psi
- * @param v
- * @param cte
- * @param epsi
- * @param delta
- * @param a
- * @param dt
- */
-void Tools::progress_state(double *x, double *y, double *psi, double *v,
-                    double *cte, double *epsi, const double delta,
-                    const double a, const double dt, const double Lf) {
-
-  *x = *x + *v * cos(*psi) * dt;
-  *y = *y + *v * sin(*psi) * dt;
-  *psi = *psi + *v * delta / Lf * dt;
-  *cte = *cte + *v * sin(*epsi) * dt;
-  *epsi = *epsi + *v * delta/ Lf * dt;
-  *v = *v + a * delta * dt;
 }
