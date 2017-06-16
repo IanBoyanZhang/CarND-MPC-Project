@@ -126,6 +126,13 @@ int main(int argc, const char *argv[]) {
           steer_value = mpc.steer_value;
           throttle_value = mpc.throttle_value;
 
+          /*************************************************************************
+           * "Breaking control" when vehicle approaches sharp corners
+           *************************************************************************/
+          if (fabs(steer_value) >= 0.45) {
+            throttle_value = -2 * fabs(steer_value);
+          }
+
           std::cout << "steer: " << steer_value << std::endl;
           std::cout << "throttle: " << throttle_value << std::endl;
 

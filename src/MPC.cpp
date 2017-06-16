@@ -27,7 +27,7 @@ const double steering_radius_ub = 0.436332;
 const double ref_cte = 0;
 const double ref_epsi = 0;
 // Target speed
-double ref_v = 99;
+double ref_v = 95;
 
 const size_t x_start = 0;
 const size_t y_start = x_start + N;
@@ -41,12 +41,12 @@ const size_t a_start = delta_start + N - 1;
 /*************************************************************************
  * Cost weights hyper parameters
  *************************************************************************/
-const double w_cost_ref_cte = 1500;
-const double w_cost_ref_epsi = 1500;
+const double w_cost_ref_cte = 2000;
+const double w_cost_ref_epsi = 2000;
 const double w_cost_ref_v = 1;
 const double w_cost_ref_val_steering = 20;
 const double w_cost_ref_val_throttle = 10;
-const double w_cost_ref_seq_steering = 250;
+const double w_cost_ref_seq_steering = 300;
 const double w_cost_ref_seq_throttle = 15;
 
 Tools tools;
@@ -72,8 +72,6 @@ class FG_eval {
     fg[0] = 0;
 
     // The part of the cost based on the reference state
-    // Least square error in quadratic form?
-
     // The part of the cost based on the reference state.
     for (int i = 0; i < N; i++) {
       fg[0] += w_cost_ref_cte * CppAD::pow(vars[cte_start + i] - ref_cte, 2);

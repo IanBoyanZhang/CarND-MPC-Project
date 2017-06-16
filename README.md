@@ -21,11 +21,12 @@ Cost function and optimization
 ---
 ![Cost function](./cost_func.png)
 
-Look ahead time is set as T = N (10) * dt (0.3) = 3s. As vehicle target speed set in 40mph. 3 seconds roughly allow predictive controller
-to see ahead 50m. N = 25, N = 20, N = 16 are used before, as experiments shown, N = 10 has similar effect with larger N number when total look ahead time Ts are roughly same.
-Hence, we increase time step difference dt to 0.3. It reduce computational load, however further experiment shows to maintain stability at current speed,
-dt would not exceed current value. Large cost weights are assigned to orientation error, large steering angle and large steering input change within unit sample interval.
+Look ahead time is set as T = N (10) * dt (0.1) = 1s. As vehicle target speed set in 100mph. N = 25, N = 20, N = 16 are used before, as experiments shown, N = 10 has similar effect with larger N number when total look ahead time Ts are roughly same.
+Large cost weights are assigned to orientation error, large steering angle and large steering input change within unit sample interval.
 To achieve smooth, responsive steering control. 
+
+In first iteration, unity velocity unit miles per hour was converted to SI unit meter per second. However, when working on improve model performance. This approach leads to car heavily wobbling from one side of track to another. Unit conversion may change state progression
+ model calculation, which leads to different landscape of cost function Hence, in current submission to achieve stable model prediction. We use miles per hour unit for velocity penalty.
 
 In this project, the MPC problem is essentially posed as receding horizontal optimization problem. Ipopt is a library read as interior points optimization.
 The name suggests interior points methods which are a certain class of algorithms widely used in linear and 
@@ -33,7 +34,7 @@ The name suggests interior points methods which are a certain class of algorithm
  optimal points. KKT condition is also mentioned in one of debugging output. The cost function itself is also in a form of 
  SOS (sum of square) of quadratic functions which have quite a few interesting properties worth learning.
  
- * TODO: Rdd curvature based velocity weight terms
+ * TODO: Add curvature based velocity weight terms
  * TODO: Read more about convex/non-convex optimization, interior points method, KKT rules
  * TODO: Read more about SOS (sum of square) quadratic cost functions, regularization and other related topics
 
