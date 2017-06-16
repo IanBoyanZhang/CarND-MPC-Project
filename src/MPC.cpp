@@ -18,7 +18,7 @@
 // Length from front to CoG that has a similar radius
 //size_t N = 16;
 size_t N = 10;
-double dt = 0.3;
+double dt = 0.1;
 
 // Vehicle configuration variables
 double steering_radius_lb = -0.436332;
@@ -92,14 +92,6 @@ class FG_eval {
 
     // Setup Constraints
     // g(x) model constraints
-
-    // Initial constraints
-    fg[1 + x_start] = vars[x_start];
-    fg[1 + y_start] = vars[y_start];
-    fg[1 + psi_start] = vars[psi_start];
-    fg[1 + v_start] = vars[v_start];
-    fg[1 + cte_start] = vars[cte_start];
-    fg[1 + epsi_start] = vars[epsi_start];
 
     // The rest of the constraints
     for (int i = 0; i < N - 1; i++) {
