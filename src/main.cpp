@@ -99,10 +99,10 @@ int main(int argc, const char *argv[]) {
           VectorXd coeffs = tools.polyfit(ptsx_veh, ptsy_veh, 3);
 
           //v = tools.mph_to_mps(v);
-          //double cte = tools.get_cte(x, y, coeffs);
-          double cte = coeffs[0];
-          //double get_espi = tool.get_epsi(x, psi_veh, coeffs);
-          double epsi = -atan(coeffs[1]);
+          //double cte = coeffs[0];
+          double cte = tools.get_cte(coeffs);
+          //double epsi = -atan(coeffs[1]);
+          double epsi = tools.get_epsi(coeffs);
           /*************************************************************************
            * To account for latency, predict the vehicle state 100ms into the future
            * before passing it to the solver. Then take the first actuator value
@@ -110,9 +110,9 @@ int main(int argc, const char *argv[]) {
            * v Global coordinate
            *************************************************************************/
 
-          const double px_1    = 0.0 + v * latency;
-          const double py_1    = 0.0;
-          const double psi_1   = 0.0 + v * (-steer_value) / Lf * latency;
+          const double px_1    = x + v * latency;
+          const double py_1    = y;
+          const double psi_1   = psi_veh + v * (-steer_value) / Lf * latency;
           const double v_1     = v + throttle_value * latency;
           const double cte_1   = cte + v * sin(epsi) * latency;
           const double epsi_1  = epsi + v * (-steer_value) / Lf * latency;

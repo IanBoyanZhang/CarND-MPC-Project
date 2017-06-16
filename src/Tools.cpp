@@ -91,8 +91,7 @@ vector<double> Tools::map2car(const double psi, const double ptsx,
  * @param coeffs
  * @return
  */
-double Tools::get_cte(const double x0, const double y0, const VectorXd &coeffs) {
-  //return polyeval(coeffs, x0) - y0;
+double Tools::get_cte(const VectorXd &coeffs) {
   return coeffs[0];
 }
 
@@ -103,7 +102,6 @@ double Tools::get_cte(const double x0, const double y0, const VectorXd &coeffs) 
  * @param coeffs
  * @return
  */
-double Tools::get_epsi(const double x0, const double psi0, const VectorXd &coeffs) {
-  //return psi0 - polyeval_1st_deri(coeffs, x0);
+double Tools::get_epsi(const VectorXd &coeffs) {
   return -atan(coeffs[1]);
 }

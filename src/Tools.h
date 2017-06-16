@@ -22,8 +22,8 @@ public:
   double get_desired_psi(const VectorXd &coeffs, const double x);
   vector<double> map2car(const double psi, const double ptsx,
                   const double ptsy, const double px, const double py);
-  double get_cte(const double x0, const double y0, const VectorXd &coeffs);
-  double get_epsi(const double x0, const double psi0, const VectorXd &coeffs);
+  double get_cte(const VectorXd &coeffs);
+  double get_epsi(const VectorXd &coeffs);
 };
 
 
